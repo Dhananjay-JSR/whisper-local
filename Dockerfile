@@ -1,4 +1,7 @@
-FROM ghcr.io/astral-sh/uv:latest
+FROM python:3.12-slim-bookworm
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -9,11 +12,12 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-RUN uv sync
-
 
 # Copy the rest of the application
 COPY . .
+
+RUN uv sync --frozen
+
 
 # Create uploads directory
 RUN mkdir -p uploads
