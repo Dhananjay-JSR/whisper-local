@@ -3,6 +3,7 @@ FROM ghcr.io/astral-sh/uv:latest
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
+    redis-server \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -19,14 +20,20 @@ RUN mkdir -p uploads
 
 # Set environment variables
 ENV PORT=5000
+ENV REDIS_HOST=localhost
+ENV REDIS_PORT=6379
 
-# Expose the port
+# Expose the ports
 EXPOSE 5000
+EXPOSE 6379
 
 RUN uv run download_whisper.py
 
 RUN chmod +x start.sh
 
+# Create a new script to start both Redis and the application
+RUN echo '#!/bin/bash\nservice redis-server start\n./start.sh' > /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
